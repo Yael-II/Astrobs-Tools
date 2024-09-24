@@ -193,8 +193,10 @@ a_east = (st - window_east).wrap_at(24*u.h)
 
 if a_east.degree <= a_west.degree:
     comp_symb = "&&"
+    comp_text = "AND"
 else: 
     comp_symb = "||"
+    comp_text = "OR"
 # * Output
 print("")
 print("\033[36m"
@@ -251,9 +253,17 @@ print("\033[36m"
 	  + "\tlower dec: "
 	  + "\033[0m" 
 	  + dec_lower.to_string(unit=u.degree))
-
 print("\033[36m"
-	  + "Simbad query constraints:"
+	  + "Simbad query constraints: "
+	  + "\033[0m"
+	  + "WHERE (ra < {} {} ra > {}) AND (dec < {} AND dec > {}))".format(
+          a_west.degree,
+          comp_text,
+          a_east.degree,
+          dec_upper.degree,
+          dec_lower.degree))
+print("\033[36m"
+	  + "Vizier query constraints:"
 	  + "\033[0m")
 print("\033[36m"
 	  + "\tRA: "
@@ -263,7 +273,6 @@ print("\033[36m"
 	  + " {} ".format(comp_symb) 
 	  + "> " 
 	  + a_east.to_string(unit=u.hour, sep=":"))
-
 print("\033[36m"
 	  + "\tDE: "
 	  + "\033[0m" 
@@ -272,6 +281,7 @@ print("\033[36m"
 	  + " && " 
 	  + "> " 
 	  + dec_lower.to_string(unit=u.degree, sep=":"))
+
 print("")
 print("\033[32m" 
       + "Write output to file ? [yes/no]" 

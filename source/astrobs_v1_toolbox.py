@@ -91,7 +91,7 @@ def create_table(cols: list = COLS,
 
 def add_manual(table,
                config,
-               seq=-1, 
+               seq=0, 
                name="", 
                main_id="",
                ra=None,
@@ -105,7 +105,7 @@ def add_manual(table,
     while name in table["NAME"]:
         name = "*" + name
 
-    while seq >= 0 and seq in table["SEQ"]:
+    while seq > 0 and seq in table["SEQ"]:
         seq += 1
 
     ra_str = ""
@@ -148,7 +148,7 @@ def add_manual(table,
 
 def add_calib(table,
               config=None,
-              seq=-1,
+              seq=0,
               name="CALIB",
               n_exp=0,
               t_exp=0*u.s,
@@ -157,7 +157,7 @@ def add_calib(table,
     while name in table["NAME"]:
         name = "*" + name
 
-    while seq >= 0 and seq in table["SEQ"]:
+    while seq > 0 and seq in table["SEQ"]:
         seq += 1
 
     table.add_row([seq,
@@ -176,7 +176,7 @@ def add_calib(table,
 def add_simbad(table, 
                obj, 
                config,
-               seq=-1, 
+               seq=0, 
                name="", 
                n_exp=0, 
                t_exp=0*u.s,
@@ -192,7 +192,7 @@ def add_simbad(table,
     while name in table["NAME"]:
         name = "*" + name
 
-    while seq >= 0 and seq in table["SEQ"]:
+    while seq > 0 and seq in table["SEQ"]:
         seq += 1
 
     ra = coord.Angle(obj["RA"][0], unit=u.hour)
@@ -239,22 +239,24 @@ def read_cfg(filename:str,
                   for i in range(len(params_index))}
     return config
 
-def set_st_window(objects, config):
+def set_st_window(table, config):
     before = coord.Angle(config["ST_BEGIN"]) \
             - coord.Angle(config["WINDOW_EAST"])
     after = coord.Angle(config["WINDOW_WEST"]) \
             - coord.Angle(config["ST_END"])
-    for i in range(len(objects)):
-        if not objects[i]["MAIN_ID"] in SPECIAL:
-            objects[i]["ST_BEGIN"] = (coord.Angle(objects[i]["RA"]) \
+    for i in range(len(table)):
+        if not table[i]["MAIN_ID"] in SPECIAL:
+            table[i]["ST_BEGIN"] = (coord.Angle(table[i]["RA"]) \
                     - before).wrap_at(24*u.h).to_string()
-            objects[i]["ST_END"] = (coord.Angle(objects[i]["RA"]) \
+            table[i]["ST_END"] = (coord.Angle(table[i]["RA"]) \
                     + after).wrap_at(24*u.h).to_string()
         else:
             continue
-    return objects
+    return table
 
-def set_seq(objects, config):
-    # TODO
+def set_seq(table, config):
+    index_duplicates = np.argwhere(
+            np.unique(table["SEQ"], return_counts=True)[1] > 1).flatten()
+    print(np.any([table["NAME"] != s for s in SPECIAL]))
     return None
     

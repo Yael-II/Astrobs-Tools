@@ -22,10 +22,11 @@ toolbox.add_simbad(objects, obj, config, name=name)
 name = "NGC 792"
 obj = Simbad.query_object(name)
 toolbox.add_simbad(objects, obj, config, name=name)
-toolbox.add_calib(objects)
-toolbox.add_calib(objects)
+toolbox.add_calib(objects, seq=1)
+toolbox.add_calib(objects, seq=1)
 toolbox.add_manual(objects, config, name="test", main_id="IGNORE", ra=coord.Angle("12h30m30s"))
 
 toolbox.set_st_window(objects, config)
+toolbox.set_seq(objects, config)
 
 print(objects)
