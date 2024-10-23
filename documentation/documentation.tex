@@ -1,0 +1,85 @@
+\documentclass[10pt, a4paper]{article} %twocolumn
+\usepackage[bib-aanda, EN]{yii-v2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                    Variables                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setTitle{Astrobs Tools}
+\setSubtitle{Documentation}
+\setAuthor{Yaël~\name{Moussouni}}
+\setInstitution{Strasbourg Astronomical Observatory (Unistra, CNRS)}
+\setDivision{}
+\setHeadBottomRight{ObAS (Unistra, CNRS)}
+\setDate{\today}
+
+
+\hypersetup{pdfauthor={\getAuthor}, pdftitle={\getTitle, \getSubtitle}}
+
+
+\begin{document}
+\longtitle{/Users/yael/Documents/Chartes graphiques/Unistra/Observatoire/obs-1.pdf}
+\begin{abstract}
+     Astrobs Tools is a suite of tools for astronomical observations. \texttt{SCOPE} is a python script that allows to prepare observations at a given location and time with several constraints, and provides the limit coordinates, also formatted for Vizier queries. Other tools will later be added.
+     \bigskip
+
+     \noindent\textbf{Key words.} Tool, astronomical observations, script, coordinate system, query.
+\end{abstract}
+
+\section{Sky Coordinates for Observations Python Estimator}
+
+\subsection{Summary}
+
+The Sky Coordinates for Observations Python Estimator (\texttt{SCOPE}) is a python script that allows to prepare observations at a given location and time with several constraints, and provides the limit coordinates, also formatted for Vizier queries.
+
+\subsection{Requirements}
+
+\texttt{SCOPE} requires python 3 (tested with python 3.12.6) and depends on the \texttt{astropy} library (version 6.0 or newer). An internet connexion may be required.
+
+\subsection{Installation}
+
+Place in your working directory the \texttt{source} folder and the output folder. Then, authorize the execution of the shell script with:
+\begin{lstlisting}[language=bash]
+chmod u+x Astrobs-Tools.sh
+\end{lstlisting}
+
+\subsection{Usage}
+
+To execute the file, on a terminal in the working directory where the \texttt{.sh} file is located, type:
+\begin{lstlisting}[language=bash]
+./Astrobs-Tools.sh
+\end{lstlisting}
+or
+\begin{lstlisting}[language=bash]
+python3 source/{filename}.py
+\end{lstlisting}
+where \texttt{\{filename\}} is the name of the file (\eg\ \texttt{SCOPE\_v2-1.py}).
+\bigskip
+
+First, the script ask you to select a location among the available locations:
+\begin{enumerate}
+     \item Observatoire astronomique de Strasbourg (ObAS)
+     \item Observatoire de Haute-Provence (OHP)
+\end{enumerate}
+Enter your choice (either \texttt{1} or \texttt{2}) and press the return key.
+\bigskip
+
+Then, enter the date of the observation in the \texttt{YYYY-MM-DD} format (for example, \texttt{1846-08-31} for 31 August 1846). If an observation span over two days, then the date provided must be the first one.
+\bigskip
+
+After that, the script computes the sun position in the sky at this location to find sunrise, sunset and twilights times (UTC). Civil twilight is defined as the period of time where the sun is above $6\odeg$ below the horizon, nautical twilight with $12\odeg$ and astronomical twilight with $18\odeg$. These times can be used to define the observation begin and end time. Nevertheless, the script does not issue any warning is parts of the observation windows cover daytime.
+\bigskip
+
+With these informations, wisely enter the begin time for observations in \texttt{hh:mm} format (\eg\ \texttt{18:30}). Please note that it should be given with in UTC, which means that \texttt{18:30} UTC correspond to \texttt{20:30} in France during summer time or \texttt{19:30} during winter time, for example. Do the same for end time. The script is smart enough to guess that if the end time is lower than the begin time, it is because that it is the next day.
+\bigskip
+
+Then it is time to enter observation constraints. First, enter the minimal elevation above the horizon (\eg\ \texttt{50} to keep a $50\odeg$ margin above the horizon). Then, enter the minimum declination around the north (\eg\ \texttt{30} for a $30\odeg$ avoidance zone around the north to prevent a cross-pole situation). If observations are only performed around the meridian, enter the time window to observe the object before crossing the meridian (\eg\ \texttt{4} to observe an object up to $4\unit{h}$ before it crosses the meridian line) and then enter the value after crossing the meridian (\eg\ \texttt{2} to observe an object up to $2\unit{h}$ after it crosses the meridian line). 
+\bigskip
+
+The script then provide a summary of the informations provided (position, date and time) and computes an observation window. The query can then copy-pasted as J2000 equatorial coordinates constraints on \texttt{\href{https://vizier.cds.unistra.fr/}{Vizier}}.
+
+\subsection{Troubleshooting}
+
+If there is an error, the issue might come from somewhere between the keyboard and the chair. No, really, I will write this section later. In the meantime, send me a message if you need help.
+
+\end{document}

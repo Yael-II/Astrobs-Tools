@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 6.1.4
+     http://www.astropy.org/ -->
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
+ <RESOURCE type="results">
+  <TABLE>
+   <FIELD ID="seq" datatype="long" name="seq"/>
+   <FIELD ID="name" arraysize="64" datatype="unicodeChar" name="name"/>
+   <FIELD ID="main_id" arraysize="64" datatype="unicodeChar" name="main_id"/>
+   <FIELD ID="ra" arraysize="*" datatype="unicodeChar" name="ra" unit="h"/>
+   <FIELD ID="dec" arraysize="*" datatype="unicodeChar" name="dec" unit="deg"/>
+   <FIELD ID="n_exp" datatype="long" name="n_exp"/>
+   <FIELD ID="t_exp" arraysize="*" datatype="unicodeChar" name="t_exp" unit="s"/>
+   <FIELD ID="st_begin" arraysize="*" datatype="unicodeChar" name="st_begin" unit="h"/>
+   <FIELD ID="st_end" arraysize="*" datatype="unicodeChar" name="st_end" unit="deg"/>
+   <FIELD ID="notes" arraysize="512" datatype="unicodeChar" name="notes"/>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>1</TD>
+      <TD>M 31</TD>
+      <TD>M  31</TD>
+      <TD>0h42m44.33s</TD>
+      <TD>41d16m07.5s</TD>
+      <TD>0</TD>
+      <TD>0.0</TD>
+      <TD>20h42m44.33s</TD>
+      <TD>2h42m44.33s</TD>
+      <TD/>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>

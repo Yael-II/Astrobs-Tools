@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 6.1.4
+     http://www.astropy.org/ -->
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
+ <RESOURCE type="results">
+  <TABLE ID="result_S1729612068753" name="result_S1729612068753">
+   <FIELD ID="main_id" arraysize="*" datatype="char" name="main_id" ucd="meta.id;meta.main">
+    <DESCRIPTION>
+     Main identifier for an object
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="ra" datatype="double" name="ra" ucd="pos.eq.ra;meta.main" unit="deg">
+    <DESCRIPTION>
+     Right ascension
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="dec" datatype="double" name="dec" ucd="pos.eq.dec;meta.main" unit="deg">
+    <DESCRIPTION>
+     Declination
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="pmra" datatype="double" name="pmra" ucd="pos.pm;pos.eq.ra" unit="mas.yr-1">
+    <DESCRIPTION>
+     Proper motion in RA
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="pmdec" datatype="double" name="pmdec" ucd="pos.pm;pos.eq.dec" unit="mas.yr-1">
+    <DESCRIPTION>
+     Proper motion in DEC
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="PM" datatype="double" name="PM"/>
+   <FIELD ID="filter" arraysize="*" datatype="char" name="filter" ucd="instr.filter">
+    <DESCRIPTION>
+     flux filter name
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="flux" datatype="float" name="flux" ucd="phot.flux"/>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>NAME Barnard's star</TD>
+      <TD>269.4520769586187</TD>
+      <TD>4.693364966576667</TD>
+      <TD>-801.551</TD>
+      <TD>10362.394</TD>
+      <TD>10393.34851801079</TD>
+      <TD>V</TD>
+      <TD>9.511</TD>
+     </TR>
+     <TR>
+      <TD>Ross  619</TD>
+      <TD>122.98987155390793</TD>
+      <TD>8.773042468212774</TD>
+      <TD>1069.812</TD>
+      <TD>-5094.22</TD>
+      <TD>5205.341018967345</TD>
+      <TD>V</TD>
+      <TD>12.834</TD>
+     </TR>
+     <TR>
+      <TD>BD+05  1668</TD>
+      <TD>111.85207903566794</TD>
+      <TD>5.225789303071388</TD>
+      <TD>571.232</TD>
+      <TD>-3691.487</TD>
+      <TD>3735.422635926623</TD>
+      <TD>V</TD>
+      <TD>9.872</TD>
+     </TR>
+     <TR>
+      <TD>Wolf   28</TD>
+      <TD>12.291243072220414</TD>
+      <TD>5.388609396929721</TD>
+      <TD>1231.399</TD>
+      <TD>-2711.883</TD>
+      <TD>2978.364132017776</TD>
+      <TD>V</TD>
+      <TD>12.374</TD>
+     </TR>
+     <TR>
+      <TD>HD   1326B</TD>
+      <TD>4.607604753587916</TD>
+      <TD>44.02724789773806</TD>
+      <TD>2862.796</TD>
+      <TD>336.432</TD>
+      <TD>2882.4967351655405</TD>
+      <TD>V</TD>
+      <TD>11.04</TD>
+     </TR>
+     <TR>
+      <TD>Ross   47</TD>
+      <TD>85.53861536337459</TD>
+      <TD>12.489334676545553</TD>
+      <TD>1997.342</TD>
+      <TD>-1569.355</TD>
+      <TD>2540.1279851592126</TD>
+      <TD>V</TD>
+      <TD>11.509</TD>
+     </TR>
+     <TR>
+      <TD>G 175-34</TD>
+      <TD>67.79797678916874</TD>
+      <TD>58.97707329124862</TD>
+      <TD>1300.365</TD>
+      <TD>-2046.106</TD>
+      <TD>2424.3553568858256</TD>
+      <TD>V</TD>
+      <TD>10.98</TD>
+     </TR>
+     <TR>
+      <TD>HD 173740</TD>
+      <TD>280.6953944644875</TD>
+      <TD>59.6268669892814</TD>
+      <TD>-1400.264</TD>
+      <TD>1862.525</TD>
+      <TD>2330.1799598573925</TD>
+      <TD>V</TD>
+      <TD>9.78</TD>
+     </TR>
+     <TR>
+      <TD>HD 173739</TD>
+      <TD>280.6946016085025</TD>
+      <TD>59.63039151279416</TD>
+      <TD>-1311.679</TD>
+      <TD>1792.325</TD>
+      <TD>2221.020194565101</TD>
+      <TD>V</TD>
+      <TD>8.93</TD>
+     </TR>
+     <TR>
+      <TD>V* TZ Ari</TD>
+      <TD>30.053984665969573</TD>
+      <TD>13.051944602566945</TD>
+      <TD>1096.458</TD>
+      <TD>-1771.526</TD>
+      <TD>2083.3925492906997</TD>
+      <TD>V</TD>
+      <TD>12.298</TD>
+     </TR>
+     <TR>
+      <TD>BD+52   911</TD>
+      <TD>75.8495915528575</TD>
+      <TD>53.128467790961395</TD>
+      <TD>1302.119</TD>
+      <TD>-1537.644</TD>
+      <TD>2014.9101619915962</TD>
+      <TD>V</TD>
+      <TD>10.059</TD>
+     </TR>
+     <TR>
+      <TD>Wolf 1421</TD>
+      <TD>117.06827411771832</TD>
+      <TD>20.368124702362504</TD>
+      <TD>1450.037</TD>
+      <TD>-992.055</TD>
+      <TD>1756.9235681707955</TD>
+      <TD>V</TD>
+      <TD>11.418</TD>
+     </TR>
+     <TR>
+      <TD>G 207-16</TD>
+      <TD>286.929114</TD>
+      <TD>32.544917</TD>
+      <TD>1232</TD>
+      <TD>1140</TD>
+      <TD>1678.5183942989722</TD>
+      <TD>V</TD>
+      <TD>11.26</TD>
+     </TR>
+     <TR>
+      <TD>HD 155876</TD>
+      <TD>258.03296559345796</TD>
+      <TD>45.66589324737053</TD>
+      <TD>348.59</TD>
+      <TD>-1624.84</TD>
+      <TD>1661.81226788708</TD>
+      <TD>V</TD>
+      <TD>9.523</TD>
+     </TR>
+     <TR>
+      <TD>Wolf   33</TD>
+      <TD>12.874318486487915</TD>
+      <TD>58.302028255631946</TD>
+      <TD>1566.955</TD>
+      <TD>405.321</TD>
+      <TD>1618.5280612538047</TD>
+      <TD>V</TD>
+      <TD>10.64</TD>
+     </TR>
+     <TR>
+      <TD>Wolf 1057</TD>
+      <TD>55.622582211612496</TD>
+      <TD>12.52597926470528</TD>
+      <TD>752.796</TD>
+      <TD>-1405.569</TD>
+      <TD>1594.4673190056294</TD>
+      <TD>V</TD>
+      <TD>12.841</TD>
+     </TR>
+     <TR>
+      <TD>Ross   34</TD>
+      <TD>52.22142148268209</TD>
+      <TD>37.382446858604716</TD>
+      <TD>1122.176</TD>
+      <TD>-1065.666</TD>
+      <TD>1547.5538758091752</TD>
+      <TD>V</TD>
+      <TD>11.11</TD>
+     </TR>
+     <TR>
+      <TD>G  68-8</TD>
+      <TD>350.4060361415058</TD>
+      <TD>17.290386427708892</TD>
+      <TD>-536.975</TD>
+      <TD>-1382.41</TD>
+      <TD>1483.0372748939926</TD>
+      <TD>V</TD>
+      <TD>11.71</TD>
+     </TR>
+     <TR>
+      <TD>HD 180617</TD>
+      <TD>289.23023570363335</TD>
+      <TD>5.1689001539355575</TD>
+      <TD>-579.081</TD>
+      <TD>-1332.868</TD>
+      <TD>1453.2280997782143</TD>
+      <TD>V</TD>
+      <TD>9.115</TD>
+     </TR>
+     <TR>
+      <TD>G 129-47</TD>
+      <TD>359.4339006702129</TD>
+      <TD>23.304579155146392</TD>
+      <TD>1021.238</TD>
+      <TD>-1021.637</TD>
+      <TD>1444.5307931688408</TD>
+      <TD>V</TD>
+      <TD>11.7</TD>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>
