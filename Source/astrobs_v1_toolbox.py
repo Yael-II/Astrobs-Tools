@@ -16,7 +16,7 @@ YES = ["YES", "Y", "1"]
 ALL = ["ALL", "*"]
 DONE = ["DONE", "OK"]
 QUIT = ["QUIT", "EXIT", "Q"]
-CANCEL = ["CANCEL", "BACK"]
+CANCEL = ["CANCEL", "BACK", "UNDO"]
 WRITE = ["WRITE", "SAVE"]
 READ = ["READ", "OPEN"]
 CALIB = ["CALIB", "CALIBRATION"]
@@ -25,6 +25,8 @@ REGION = ["SEARCH", "REGION"]
 ST = ["SIDEREAL", "ST"]
 SEQ = ["SEQUENCE", "SEQ"]
 CHECK = ["CHECK"]
+HELP = ["HELP", "H", "?"]
+
 OUT_DIR = "./Output/"
 DEFAULT_CONFIG = """# Default config
 LOCATION: None
@@ -84,7 +86,19 @@ TYPES = [np.int_, # SEQ
 def check_window(table: Table, 
                  config: dict, 
                  i: np.int_ = None) -> np.bool_:
+    """
+    This function returns False if any target is outside the observation 
+    window.
+    @params:
+        - table: the table of targets to check
+        - config: the configuration dictionary
+        - i: if not None, check only the index i of the table
+    @returns:
+        - True if all targets are in the observation window
+        - False if at least one target is outside the observation window.
+    """
     def check_operation_(line, config):
+        """Repeated operation to check all the elements of the table."""
         if line["main_id"] in SPECIAL:
             return True
         if line["ra"] == "":
@@ -100,7 +114,7 @@ def check_window(table: Table,
         if east <= west:
             if ra < east or ra > west:
                 print("\033[93m"
-                      +("Warning: The target {} "
+                      +("Warning: The target {} "
                         "is outside the observation window.").format(
                          line["name"])
                       +"\033[0m")
@@ -108,14 +122,14 @@ def check_window(table: Table,
         else:
             if ra < east and ra > west:
                 print("\033[93m"
-                      +("Warning: The target {} "
+                      +("Warning: The target {} "
                         "is outside the observation window.").format(
                          line["name"])
                       +"\033[0m")
                 return False
             if dec < lower or dec > upper:
                 print("\033[93m"
-                      +("Warning: The target {} "
+                      +("Warning: The target {} "
                         "is outside the observation window.").format(
                          line["name"])
                       +"\033[0m")
@@ -134,11 +148,30 @@ def check_window(table: Table,
 def create_table(cols: list = COLS, 
                  units: list = UNITS,
                  types: list = TYPES) -> Table:
+    """
+    This function creates the target table.
+    @params:
+        - cals: list of columns
+        - units: list of units
+        - type: lust of types
+    @returns:
+        - a Table object
+    """
     return Table(names=cols, dtype=types, units=units)
 
 def select_obj(table: Table, 
                line: Table,
                config: dict) -> Table:
+    """
+    This function interacts with the user to select targets from one table 
+    and append them in another table.
+    @params:
+        - table: the target table to modify
+        - line: a table of targets to choose from
+        - config: the configuration dictionary
+    @returns:
+        - table: the modified table
+    """
     table_old = table.copy()
     for i in range(len(line)):
         while line[i]["name"] in line[:i]["name"]: 
@@ -147,7 +180,8 @@ def select_obj(table: Table,
     answer = "$"
     print("\033[32m"
           + ("Select the name of the objects "
-             "you want to observe (column \"NAME\"):")
+             "you want to observe (column \"NAME\"):"
+             "\n(available commands: [name], all, cancel, done)")
           + "\033[0m")
     while answer.upper() not in DONE + [""]:
         answer = input("\033[32m"
@@ -175,6 +209,9 @@ def select_obj(table: Table,
                   + "Operation canceled"
                   + "\033[0m")
             return table
+        elif answer in HELP:
+            print("")
+            print_help()
         elif answer in ALL:
             for i in range(len(line)):
                 name = line[i]["name"]
@@ -214,7 +251,15 @@ def add_manual(table: Table,
                obj_begin: coord.angles.core.Angle = None,
                obj_end: coord.angles.core.Angle = None,
                notes: np.str_ = "") -> Table:
-
+    """
+    This function allows the user to add manually an entry to the table.
+    @params
+        - table: the target table
+        - config: the configuration dictionary:
+        - *params: all the parameters of the target to add
+    @returns
+        - table: the modified table
+    """
     while name in table["name"]: name = "*" + name
     while seq > 0 and seq in table["seq"]: seq += 1
 
@@ -263,7 +308,15 @@ def add_calib(table: Table,
               n_exp: np.int_ = 0,
               t_exp: u.quantity.Quantity = 0*u.s,
               notes: np.str_ = "") -> Table:
-
+    """
+    Add a calibration line to the table.
+    @params
+        - table: the target table
+        - config: the configuration dictionary:
+        - *params: all the parameters of the calibration to add
+    @returns
+        - table: the modified table
+    """
     while name in table["name"]:
         name = "*" + name
 
@@ -293,8 +346,21 @@ def add_simbad(table: Table,
                obj_begin: coord.angles.core.Angle = None,
                obj_end: coord.angles.core.Angle = None,
                notes: np.str_ = "") -> Table:
+    """
+    Add a target imported from Simbad using astroquery.Simbad:
+    @params
+        - table: the target table
+        - obj: the table of objects from astroquery.Simbad
+        - config: the configuration dictionary:
+        - *params: all the parameters of the target to add
+    @returns
+        - table: the modified table
+    """
     for i in range(len(obj)):
-        main_id = obj["main_id"][i]
+        try:
+            main_id = obj["main_id"][i]
+        except KeyError:
+            main_id = obj["MAIN_ID"][i]
 
         if name == "":
             name = main_id
@@ -304,9 +370,12 @@ def add_simbad(table: Table,
 
         while seq > 0 and seq in table["seq"]:
             seq += 1
-
-        ra = coord.Angle(obj["ra"][i], unit=u.degree)
-        dec = coord.Angle(obj["dec"][i], unit=u.degree)
+        try:
+            ra = coord.Angle(obj["ra"][i], unit=u.degree)
+            dec = coord.Angle(obj["dec"][i], unit=u.degree)
+        except KeyError:
+            ra = coord.Angle(obj["RA"][i], unit=u.degree)
+            dec = coord.Angle(obj["DEC"][i], unit=u.degree)
         ra_str = ra.to_string(unit=u.hour)
         dec_str = dec.to_string(unit=u.degree)
         obj_begin_str = ""
@@ -339,6 +408,15 @@ def add_simbad(table: Table,
 def read_cfg(filename:str,
              directory:str = OUT_DIR,
              extension:str = ".cfg") -> dict:
+    """
+    Read the configuration file
+    @params:
+        - filename: the configuration file name (without extension)
+        - directory: the directory in which the configuration file is located
+        - extension: the extension of the configuration file
+    @returns:
+        - config: the configuration dictionary
+    """
     if directory[-1] != "/": directory += "/"
     if extension[0] != ".": extension = "." + extension
     try:
@@ -369,13 +447,19 @@ def read_cfg(filename:str,
                         params_value.append(params[1])
             config = {params_index[i]:params_value[i] 
                       for i in range(len(params_index))}
-
-
-
-
     return config
 
-def set_st_window(table, config):
+def set_st_window(table: Table, 
+                  config: dict):
+    """
+    This function computes the sidereal time window of observation for all 
+    targets in the table, assuming an observation around the meridian.
+    @params:
+        - table: the target table
+        - config: the configuration dictionary
+    @return:
+        - table: the updated table
+    """
     before = coord.Angle(config["ST_BEGIN"]) \
             - coord.Angle(config["WINDOW_EAST"])
     after = coord.Angle(config["WINDOW_WEST"]) \
@@ -390,7 +474,20 @@ def set_st_window(table, config):
             continue
     return table
 
-def set_seq(table, config, stack=False):
+def set_seq(table: str, 
+            config: dict, 
+            stack: bool = False):
+    """
+    Sets the sequence number of all targets in the table, if the sequence 
+    number has a duplicate or is zero, excluding special id (calib, ...), and 
+    targets with no coordinates.
+    @params:
+        - table: the target table
+        - config: the configuration dictionary
+        - stack: if True, the first target is indexed with 1 (the last target is indexed with -1, if necessary)
+    @returns:
+        - table: the updated table
+    """
     window_east = coord.Angle(config["WINDOW_EAST"]).degree
     window_west = coord.Angle(config["WINDOW_WEST"]).degree
     dupl_seq = np.argwhere(
@@ -451,10 +548,21 @@ def set_seq(table, config, stack=False):
             i -= 1
     return table
 
-def swap(table, name_1, name_2):
+def swap(table: Table, 
+         name_1: str, 
+         name_2: str) -> Table:
+    """
+    This function swaps to lines in the table
+    @params:
+        - table: the table of targets
+        - name_1: the name of the first target to swap
+        - name_2: the name of the second target to swap
+    @returns:
+        - table: the updated table
+    """
     if name_1 not in table["name"] or name_2 not in table["name"]:
         print("\033[93m"
-              +"Warning: {} or {} cannot be found in the table.".format(
+              +"Warning: {} or {} cannot be found in the table.".format(
                   name_1,
                   name_2)
               +"\033[0m")
@@ -477,12 +585,24 @@ def swap(table, name_1, name_2):
     table.remove_row(-1)
     return table
 
-def write_table(table, 
-                config, 
+def write_table(table: Table, 
+                config: dict, 
                 filename=None, 
                 extension=".xml", 
                 format_="votable", 
                 directory=OUT_DIR):
+    """
+    Writes the table in a file.
+    @params:
+        - table: the table of targets
+        - config: the configuration dictionary
+        - filename: the name of the file (if None, YYYY-MM-DD_Location)
+        - extension: the file extension (default: .xml)
+        - format_: the format of the file (default: votable)
+        - directory: the output directory
+    @returns:
+        - 0 if the code exited with no issues
+    """
     data = table.copy()
     if directory[-1] != "/": directory += "/"
     if extension[0] != ".": extension = "." + extension
@@ -497,18 +617,32 @@ def write_table(table,
               + "File saved in the {} directory ".format(directory)
               + "with the name {}".format(filename+extension)
               + "\033[0m")
+        return 0
     except Exception as e:
         print("\033[91m"
               + ("Error! File cannot be saved "
                  "in the {} directory").format(directory)
               + "\033[0m")
+        return 1
 
-def read_table(filename,
-               table,
-               config,
+def read_table(filename: str,
+               table: Table,
+               config: dict,
                extension=".xml",
                format_="votable",
                directory=OUT_DIR):
+    """
+    Read a table previously stored in a file.
+    @params:
+        - filename: the name of the file
+        - table: the (empty) table in which the file is loaded
+        - config: the configuration dictionary
+        - extension: the file extension (default: .xml)
+        - format_: the format of the file (default: votable)
+        - directory: the output directory
+    @returns:
+        - table: the table with the file loaded
+    """
     if directory[-1] != "/": directory += "/"
     if extension[0] != ".": extension = "." + extension
     if filename == None:
@@ -568,8 +702,45 @@ def read_table(filename,
               + "\033[0m")
         return create_table()
     return table
-
-def resolve_input(text, table, config):
+def print_help():
+    hilfe = ("\033[36m"
+             "Help will be always given to those who ask for it [1].\n"
+             "Available commands (not case sensitive):\n"
+             "\t- help, h, ?: show this page\n"
+             "\t- quit, exit, q: quit the current code\n"
+             "\t- cancel, back: cancels the current action\n"
+             "\t- write, save: write the current table in a file "
+             "(no options available yet)\n"
+             "\t- read, open [filename]: loads the file \"filename\" "
+             "in the current table (no additional options available yet)\n"
+             "\t- calibration, calib: adds a calibration in the target list\n"
+             "\t- simbad [object name], object [object name]: "
+             "add an object from simbad\n"
+             "\t- search [ra] [dec] [radius], region [ra] [dec] [radius]: "
+             "search a region centred on the ra/dec coordinates, "
+             "with a given radius (coordinates should be expressed as "
+             "12h30m30s, 90d30m30s or 90.555d)\n"
+             "\t- sidereal, st: computes the sidereal time for each target\n"
+             "\t- sequence, seq: computes the sequence order for each "
+             "target\n"
+             "\t- check: check if all targets are in the observation field\n"
+             "\n"
+             "[1] Pr. Dumbledore, Albus Percival Wulfric Brian, 1992, Hogwarts School of Witchcraft and Wizardry"
+             "\033[0m")
+    print(hilfe)
+    return None
+def resolve_input(text: str, 
+                  table: Table, 
+                  config: dict):
+    """
+    Resolve the input to execute the expected function in an interactive way
+    @params:
+        - text: the input string entered by the user
+        - table: the table of targets
+        - config: the configuration dictionary
+    @returns:
+        - table: the updated table
+    """
     swap_table = create_table()
     args = text.split(" ")
     try:
@@ -600,17 +771,20 @@ def resolve_input(text, table, config):
             set_seq(table, config)
         elif args[0].upper() in CHECK:
             check_window(table, config) 
+        elif args[0].upper() in HELP:
+            print_help()
         elif args[0].upper() in QUIT:
             None
         else:
             print("\033[93m"
-                  + ("Warning: {} is not recognized "
+                  + ("Warning: {} is not recognized "
                      "as a valid keyword.").format(args[0])
                   + "\033[0m")
     except Exception as e:
         print("\033[91m"
               + "Error: Your operation is not recognized".format(args[0])
               + "\033[0m")
+        print(e)
     return table
 
 

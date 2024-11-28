@@ -3,8 +3,8 @@ import EQUATOR_v1_1
 
 QUIT = ["QUIT", "EXIT", "Q"]
 DONE = ["DONE", "OK"]
-SCOPE = ["SCOPE"]
-EQUATOR = ["EQUATOR"]
+SCOPE = ["SCOPE", "S", "1"]
+EQUATOR = ["EQUATOR", "E", "2"]
 
 stop = False
 first = True
