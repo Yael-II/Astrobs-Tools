@@ -22,6 +22,7 @@ READ = ["READ", "OPEN"]
 CALIB = ["CALIB", "CALIBRATION"]
 SIMBAD = ["SIMBAD", "OBJECT"]
 REGION = ["SEARCH", "REGION"]
+MANUAL = ["MANUAL", "ADD"]
 ST = ["SIDEREAL", "ST"]
 SEQ = ["SEQUENCE", "SEQ"]
 CHECK = ["CHECK"]
@@ -721,6 +722,10 @@ def print_help():
              "search a region centred on the ra/dec coordinates, "
              "with a given radius (coordinates should be expressed as "
              "12h30m30s, 90d30m30s or 90.555d)\n"
+             "\t- manual [name] [seq (optional)], "
+             "add [name] [seq (optional)]: "
+             "manually add a target (only the name the sequence are "
+             "available for now)\n"
              "\t- sidereal, st: computes the sidereal time for each target\n"
              "\t- sequence, seq: computes the sequence order for each "
              "target\n"
@@ -731,7 +736,7 @@ def print_help():
              "\t- yes, y, 1: yes\n"
              "\t- no, n, 0, or anything else: no\n"
              "\t- all, *: select all\n"
-             "\t- done, ok: confirm, save the current state and quit"
+             "\t- done, ok: confirm, save the current state and quit\n"
              "\n"
              "[1] Pr. Dumbledore, Albus Percival Wulfric Brian, 1992, Hogwarts School of Witchcraft and Wizardry"
              "\033[0m")
@@ -741,7 +746,8 @@ def resolve_input(text: str,
                   table: Table, 
                   config: dict):
     """
-    Resolve the input to execute the expected function in an interactive way
+    Resolve the input to execute the expected function in an 
+    interactive way
     @params:
         - text: the input string entered by the user
         - table: the table of targets
@@ -771,6 +777,18 @@ def resolve_input(text: str,
             obj = Simbad.query_region(region, radius)
             swap_table = add_simbad(swap_table, obj, config)
             select_obj(table, swap_table, config)
+        elif args[0].upper() in MANUAL: # TODO ajouter args
+            if "-s" in args:
+                name = args[1]
+                i = 2
+                while args[i] != "-s":
+                    name += (" " + args[i]) 
+                    i+=1
+                seq = int(args[i+1])
+            else:
+                name = " ".join(args[1:])
+                seq = 0
+            add_manual(table, config, seq, name)
         elif args[0].upper() in CALIB: # TODO ajouter args
             add_calib(table, config)
         elif args[0].upper() in ST:

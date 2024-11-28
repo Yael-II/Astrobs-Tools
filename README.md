@@ -70,6 +70,7 @@ add an object from simbad
 search a region centred on the ra/dec coordinates, 
 with a given radius (coordinates should be expressed as 
 `12h30m30s`, `90d30m30s` or `90.555d`)
+- `manual [name] -s [seq]`, `add [name] -s [seq]`: manually add a target (only the name and the sequence are available for now)
 - `sidereal`, `st`: computes the sidereal time for each target
 - `sequence`, `seq`: computes the sequence order for each 
 target
