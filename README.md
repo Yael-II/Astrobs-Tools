@@ -36,7 +36,19 @@ Then select the desired code
 
 ### SCOPE
 
-...
+1. Select a location (available location: ObAS, OHP) — default: (last one)
+2. Date of observation `[YYYY-MM-DD]` - default: today
+3. Begin time of observation `[hh:mm format, UTC]` — default: astronomical twilight
+4. End time of observation `[hh:mm format, UTC]` — default:  astronomical twilight
+5. Minimum altitude above horizon `[deg]` — default: 50°
+6. Minimum declination around the north `[deg]` — default: 30°
+7. Observation window before crossing the meridian `[h]` — default: 4h
+8. Observation window after crossing the meridian `[h]` - default: 2h
+
+Observation parameters are then printed
+
+- Write output to file `[yes/no]` — default: no
+By default, the file is saved in the Output directory, with the name `YYYY-MM-DD_Location.cfg`
 
 ### EQUATOR
 
