@@ -62,7 +62,7 @@ Available commands (not case sensitive):
 - `quit`, `exit`, `q`: quit the current code (WARNING: this does not save the current state!)
 - `write`, `save`: write the current table in a file 
 (no options available yet)
-- `read [filename]`, `open [filename]`, `load`: loads the file "filename" in the current table (no additional options available yet)
+- `read [filename]`, `open [filename]`, `load [filename]`: loads the file "filename" in the current table (no additional options available yet)
 - `calibration`, `calib`: adds a calibration in the target list
 - `simbad [object name]`, `object [object name]`: 
 add an object from simbad
@@ -71,7 +71,7 @@ add an object from simbad
 - `sequence`, `seq`: computes the sequence order for each 
 target
 - `check`: check if all targets are in the observation field
-- plot, graph: creates a graph with all the targets observation date and time
+- `plot`, `graph`: creates a graph with all the targets observation date and time
 
 General actions:
 - `cancel`, `back`: cancels the current action
