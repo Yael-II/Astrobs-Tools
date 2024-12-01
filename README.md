@@ -80,6 +80,6 @@ General actions:
 - `all`, `*`: select all
 - `done`, `ok`: confirm, save the current state and quit
 
-## Extractors (HPMS, NGC)
+### Extractors (HPMS, NGC)
 
 Extractors are small codes to query databases in order to extract a table of potential targets. Using them is often straightforward, and their result is always written in the `Output/` directory. 
