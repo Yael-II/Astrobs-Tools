@@ -257,6 +257,26 @@ def main():
     else: 
         comp_symb = "||"
         comp_text = "OR"
+
+    constraint = ("((ra < {} {} ra > {})"
+                  " AND "
+                  "(dec < {} AND dec > {}))").format(
+                          a_west.degree,
+                          comp_text,
+                          a_east.degree,
+                          dec_upper.degree,
+                          dec_lower.degree)
+    ra_const = "< " \
+            + a_west.to_string(unit=u.hourangle, sep=":", pad=True) \
+            + " {} ".format(comp_symb) \
+            + "> " \
+            + a_east.to_string(unit=u.hourangle, sep=":", pad=True)
+    de_const = "< " \
+            + dec_upper.to_string(unit=u.degree, sep=":", pad=True) \
+            + " && " \
+            + "> " \
+            + dec_lower.to_string(unit=u.degree, sep=":", pad=True)
+
     # * Output
     print("")
     print("\033[36m"
@@ -266,11 +286,11 @@ def main():
     print("\033[36m"
           + "\tlat: "
           + "\033[0m" 
-          + obs_lat.to_string())
+          + obs_lat.to_string(unit=u.degree))
     print("\033[36m"
           + "\tlon: "
           + "\033[0m" 
-          + obs_lon.to_string())
+          + obs_lon.to_string(unit=u.degree))
     print("\033[36m"
           + "Observation"
           + "\033[0m")
@@ -285,63 +305,66 @@ def main():
     print("\033[36m"
           + "\tbegin sidereal time: "
           + "\033[0m" 
-          + st.to_string(unit=u.hour))
+          + st.to_string(unit=u.hourangle,
+                         sep=":",
+                         pad=True))
     print("\033[36m"
           + "\t  end sidereal time: "
           + "\033[0m" 
-          + (st + obs_sky_rotation).wrap_at(24*u.h).to_string(unit=u.hour))
+          + (st + obs_sky_rotation).wrap_at(24*u.h).to_string(unit=u.hour,
+                                                              sep=":",
+                                                              pad=True))
     print("\033[36m"
           + "\t       sky rotation: "
           + "\033[0m" 
-          + obs_sky_rotation.to_string(unit=u.hour))
+          + obs_sky_rotation.to_string(unit=u.hourangle,
+                                       sep=":",
+                                       pad=True))
     print("\033[36m"
           + "Sky coordinates window"
           + "\033[0m")
     print("\033[36m"
           + "\t  east ra: "
           + "\033[0m" 
-          + a_east.to_string(unit=u.hour))
+          + a_east.to_string(unit=u.hourangle,
+                             sep=":",
+                             pad=True))
     print("\033[36m"
           + "\t  west ra: "
           + "\033[0m" 
-          + a_west.to_string(unit=u.hour))
+          + a_west.to_string(unit=u.hourangle,
+                             sep=":",
+                             pad=True))
     print("\033[36m"
           + "\tupper dec: "
           + "\033[0m" 
-          + dec_upper.to_string(unit=u.degree))
+          + dec_upper.to_string(unit=u.degree,
+                                sep=":",
+                                pad=True,
+                                alwayssign=True))
     print("\033[36m"
           + "\tlower dec: "
           + "\033[0m" 
-          + dec_lower.to_string(unit=u.degree))
+          + dec_lower.to_string(unit=u.degree,
+                                sep=":",
+                                pad=True,
+                                alwayssign=True))
     print("\033[36m"
           + "Simbad query constraints: "
           + "\033[0m"
-          + "WHERE (ra < {} {} ra > {}) AND (dec < {} AND dec > {}))".format(
-              a_west.degree,
-              comp_text,
-              a_east.degree,
-              dec_upper.degree,
-              dec_lower.degree))
+          + "WHERE "
+          + constraint)
     print("\033[36m"
           + "Vizier query constraints:"
           + "\033[0m")
     print("\033[36m"
           + "\tRA: "
           + "\033[0m" 
-          + "< " 
-          + a_west.to_string(unit=u.hour, sep=":") 
-          + " {} ".format(comp_symb) 
-          + "> " 
-          + a_east.to_string(unit=u.hour, sep=":"))
+          +  ra_const)
     print("\033[36m"
           + "\tDE: "
           + "\033[0m" 
-          + "< " 
-          + dec_upper.to_string(unit=u.degree, sep=":") 
-          + " && " 
-          + "> " 
-          + dec_lower.to_string(unit=u.degree, sep=":"))
-
+          + de_const)
     print("")
     print("\033[32m" 
           + "Write output to file ? [yes/no]" 
@@ -357,9 +380,9 @@ def main():
                 file.write("LOCATION: ")
                 file.write(obs_short + "\n")
                 file.write("LAT: ")
-                file.write(obs_lat.to_string() + "\n")
+                file.write(obs_lat.to_string(unit=u.degree) + "\n")
                 file.write("LON: ")
-                file.write(obs_lon.to_string() + "\n")
+                file.write(obs_lon.to_string(unit=u.degree) + "\n")
                 file.write("SUN_SET: ")
                 file.write(sun_set.to_string() + "\n")
                 file.write("SUN_SET_CIVIL: ")
@@ -381,18 +404,39 @@ def main():
                 file.write("OBS_END: ")
                 file.write(obs_end_time.to_string() + "\n")
                 file.write("ST_BEGIN: ")
-                file.write(st.to_string(unit=u.hour) + "\n")
+                file.write(st.to_string(unit=u.hourangle,
+                                        sep=":",
+                                        pad=True) + "\n")
                 file.write("ST_END: ")
                 file.write((st + obs_sky_rotation).wrap_at(
-                    24*u.h).to_string(unit=u.hour) + "\n")
+                    24*u.h).to_string(unit=u.hourangle,
+                                      sep=":",
+                                      pad=True) + "\n")
                 file.write("WINDOW_EAST: ")
-                file.write(a_east.to_string(unit=u.hour) + "\n")
+                file.write(a_east.to_string(unit=u.hourangle,
+                                            sep=":",
+                                            pad=True) + "\n")
                 file.write("WINDOW_WEST: ")
-                file.write(a_west.to_string(unit=u.hour) + "\n")
+                file.write(a_west.to_string(unit=u.hourangle,
+                                            sep=":",
+                                            pad=True) + "\n")
                 file.write("WINDOW_UPPER: ")
-                file.write(dec_upper.to_string(unit=u.degree) + "\n")
+                file.write(dec_upper.to_string(unit=u.degree,
+                                               sep=":",
+                                               pad=True,
+                                               alwayssign=True) + "\n")
                 file.write("WINDOW_LOWER: ")
-                file.write(dec_lower.to_string(unit=u.degree) + "\n")
+                file.write(dec_lower.to_string(unit=u.degree,
+                                               sep=":",
+                                               pad=True,
+                                               alwayssign=True) + "\n")
+                file.write("CONSTRAINT: ")
+                file.write(constraint + "\n")
+                file.write("RA_CONST: ")
+                file.write(ra_const + "\n")
+                file.write("DE_CONST: ")
+                file.write(de_const + "\n")
+
             print("\033[34m" 
                   + "File saved in the {} directory ".format(OUT_DIR)
                   + "with the name {}_{}.cfg".format(obs_date, obs_short)

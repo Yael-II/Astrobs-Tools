@@ -50,7 +50,7 @@ def main():
         if ans.upper() in QUIT:
             stop = True
         toolbox.resolve_input(ans, targets, config)
-        targets.pprint()
+        targets.pprint_all()
     return 0
 
 if __name__ == "__main__":

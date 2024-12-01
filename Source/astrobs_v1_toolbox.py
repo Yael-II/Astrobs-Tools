@@ -5,6 +5,7 @@
 @ Observatory of Strasbourg 
 """
 import numpy as np
+import matplotlib.pyplot as plt
 import astropy.time as time
 import astropy.coordinates as coord
 import astropy.units as u
@@ -18,7 +19,7 @@ DONE = ["DONE", "OK"]
 QUIT = ["QUIT", "EXIT", "Q"]
 CANCEL = ["CANCEL", "BACK", "UNDO"]
 WRITE = ["WRITE", "SAVE"]
-READ = ["READ", "OPEN"]
+READ = ["READ", "OPEN", "LOAD"]
 CALIB = ["CALIB", "CALIBRATION"]
 SIMBAD = ["SIMBAD", "OBJECT"]
 REGION = ["SEARCH", "REGION"]
@@ -26,9 +27,12 @@ MANUAL = ["MANUAL", "ADD"]
 ST = ["SIDEREAL", "ST"]
 SEQ = ["SEQUENCE", "SEQ"]
 CHECK = ["CHECK"]
+PLOT = ["PLOT", "GRAPH"]
 HELP = ["HELP", "H", "?"]
 
+FIGURE_DPI = 100
 OUT_DIR = "./Output/"
+
 DEFAULT_CONFIG = """# Default config
 LOCATION: None
 LAT: 0d00m00s
@@ -45,10 +49,11 @@ OBS_BEGIN: 1970-01-01 12:00:00.000
 OBS_END: 1970-01-01 12:00:00.000
 ST_BEGIN: 12h00m0s
 ST_END: 12h00m00s
-WINDOW_EAST: 0h00m00s
-WINDOW_WEST: 23h59m59s
-WINDOW_UPPER: 90d00m00s
-WINDOW_LOWER: -90d00m00s
+WINDOW_EAST: 00:00:00.0
+WINDOW_WEST: 23:59:59.9
+WINDOW_UPPER: +90:00:00.0
+WINDOW_LOWER: -90:00:00.0
+CONSTRAINT: ' ' LIKE ' '
 """
 
 COLS = ["seq", 
@@ -56,10 +61,6 @@ COLS = ["seq",
         "main_id", 
         "ra",
         "dec", 
-        "n_exp", 
-        "t_exp", 
-        "st_begin", 
-        "st_end",
         "notes"]
 
 UNITS = ["", # SEQ
@@ -67,10 +68,6 @@ UNITS = ["", # SEQ
          "", # MAIN_ID
          "h", # RA
          "deg", # DEC
-         "", # N_EXP
-         "s", # T_EXP
-         "h", # ST_BEGIN
-         "deg", # ST_END
          ""]
 
 TYPES = [np.int_, # SEQ
@@ -78,10 +75,6 @@ TYPES = [np.int_, # SEQ
          np.str_("<U64"), # MAIN_ID
          coord.angles.core.Angle, # RA
          coord.angles.core.Angle, # DEC
-         np.int_, # N_EXP
-         u.quantity.Quantity, # T_EXP
-         coord.angles.core.Angle, # ST_BEGIN
-         coord.angles.core.Angle, # ST_END
          np.str_("<U512")]
 
 def check_window(table: Table, 
@@ -106,12 +99,12 @@ def check_window(table: Table,
             return True
         if line["dec"] == "":
             return True
-        ra = coord.Angle(line["ra"])
-        dec = coord.Angle(line["dec"])
-        east = coord.Angle(config["WINDOW_EAST"])
-        west = coord.Angle(config["WINDOW_WEST"])
-        upper = coord.Angle(config["WINDOW_UPPER"])
-        lower = coord.Angle(config["WINDOW_LOWER"])
+        ra = coord.Angle(line["ra"], unit=u.hourangle)
+        dec = coord.Angle(line["dec"], unit=u.degree)
+        east = coord.Angle(config["WINDOW_EAST"], unit=u.hourangle)
+        west = coord.Angle(config["WINDOW_WEST"], unit=u.hourangle)
+        upper = coord.Angle(config["WINDOW_UPPER"], unit=u.degree)
+        lower = coord.Angle(config["WINDOW_LOWER"], unit=u.degree)
         if east <= west:
             if ra < east or ra > west:
                 print("\033[93m"
@@ -213,7 +206,7 @@ def select_obj(table: Table,
         elif answer in HELP:
             print("")
             print_help()
-        elif answer in ALL:
+        elif answer.upper() in ALL:
             for i in range(len(line)):
                 name = line[i]["name"]
                 while name in table["name"]: 
@@ -247,10 +240,6 @@ def add_manual(table: Table,
                main_id: np.str_ = "",
                ra: coord.angles.core.Angle = None,
                dec: coord.angles.core.Angle = None,
-               n_exp: np.int_ = 0, 
-               t_exp: u.quantity.Quantity = 0*u.s,
-               obj_begin: coord.angles.core.Angle = None,
-               obj_end: coord.angles.core.Angle = None,
                notes: np.str_ = "") -> Table:
     """
     This function allows the user to add manually an entry to the table.
@@ -270,34 +259,25 @@ def add_manual(table: Table,
     obj_end_str = ""
 
     if type(ra) == coord.angles.core.Angle:
-        ra_str = ra.to_string(unit=u.hour)
+        ra_str = ra.to_string(unit=u.hourangle,
+                              sep=":",
+                              pad=True)
     elif type(ra) == str:
         ra_str = ra
 
     if type(dec) == coord.angles.core.Angle:
-        dec_str = dec.to_string(unit=u.degree)
+        dec_str = dec.to_string(unit=u.degree,
+                                sep=":",
+                                pad=True,
+                                alwayssign=True)
     elif type(dec) == str:
         dec_str = dec
-
-    if type(obj_begin) == coord.angles.core.Angle:
-        obj_begin_str = obj_begin.to_string()
-    elif type(obj_begin) == str:
-        obj_begin_str = obj_begin
-
-    if type(obj_end) == coord.angles.core.Angle:
-        obj_end_str = obj_end.to_string()
-    elif type(obj_end) == str:
-        obj_end_str = obj_end
 
     table.add_row([seq,
                    name,
                    main_id,
                    ra_str,
                    dec_str,
-                   n_exp,
-                   t_exp.to_value(u.s),
-                   obj_begin_str,
-                   obj_end_str,
                    notes])
     check_window(table, config, -1)
     return table
@@ -306,8 +286,6 @@ def add_calib(table: Table,
               config: dict = None,
               seq: np.int_ = 0,
               name: np.str_ = "CALIB",
-              n_exp: np.int_ = 0,
-              t_exp: u.quantity.Quantity = 0*u.s,
               notes: np.str_ = "") -> Table:
     """
     Add a calibration line to the table.
@@ -329,8 +307,6 @@ def add_calib(table: Table,
                    "CALIBRATION",
                    "",
                    "",
-                   n_exp,
-                   t_exp.to_value(u.s),
                    "",
                    "",
                    notes])
@@ -342,10 +318,6 @@ def add_simbad(table: Table,
                config: dict,
                seq: np.int_ = 0, 
                name: np.str_ = "", 
-               n_exp: np.int_ = 0, 
-               t_exp: u.quantity.Quantity = 0*u.s,
-               obj_begin: coord.angles.core.Angle = None,
-               obj_end: coord.angles.core.Angle = None,
                notes: np.str_ = "") -> Table:
     """
     Add a target imported from Simbad using astroquery.Simbad:
@@ -377,38 +349,26 @@ def add_simbad(table: Table,
         except KeyError:
             ra = coord.Angle(obj["RA"][i], unit=u.degree)
             dec = coord.Angle(obj["DEC"][i], unit=u.degree)
-        ra_str = ra.to_string(unit=u.hour)
-        dec_str = dec.to_string(unit=u.degree)
-        obj_begin_str = ""
-        obj_end_str = ""
-
-        if type(obj_begin) == coord.angles.core.Angle:
-            obj_begin_str = obj_begin.to_string()
-        elif type(obj_begin) == str:
-            obj_begin_str = obj_begin
-
-        if type(obj_end) == coord.angles.core.Angle:
-            obj_end_str = obj_end.to_string()
-        elif type(obj_end) == str:
-            obj_end_str = obj_end
-
+        ra_str = ra.to_string(unit=u.hourangle, 
+                              sep=":", 
+                              pad=True)
+        dec_str = dec.to_string(unit=u.degree, 
+                                sep=":", 
+                                pad=True, 
+                                alwayssign=True)
         table.add_row([seq,
                        name,
                        main_id,
                        ra_str,
                        dec_str,
-                       n_exp,
-                       t_exp.to_value(u.s),
-                       obj_begin_str,
-                       obj_end_str,
                        notes])
         name = ""
     check_window(table, config)
     return table
 
-def read_cfg(filename:str,
-             directory:str = OUT_DIR,
-             extension:str = ".cfg") -> dict:
+def read_cfg(filename: str,
+             directory: str = OUT_DIR,
+             extension: str = ".cfg") -> dict:
     """
     Read the configuration file
     @params:
@@ -450,31 +410,6 @@ def read_cfg(filename:str,
                       for i in range(len(params_index))}
     return config
 
-def set_st_window(table: Table, 
-                  config: dict):
-    """
-    This function computes the sidereal time window of observation for all 
-    targets in the table, assuming an observation around the meridian.
-    @params:
-        - table: the target table
-        - config: the configuration dictionary
-    @return:
-        - table: the updated table
-    """
-    before = coord.Angle(config["ST_BEGIN"]) \
-            - coord.Angle(config["WINDOW_EAST"])
-    after = coord.Angle(config["WINDOW_WEST"]) \
-            - coord.Angle(config["ST_END"])
-    for i in range(len(table)):
-        if not table[i]["main_id"] in SPECIAL:
-            table[i]["st_begin"] = (coord.Angle(table[i]["ra"]) \
-                    - before).wrap_at(24*u.h).to_string()
-            table[i]["st_end"] = (coord.Angle(table[i]["ra"]) \
-                    + after).wrap_at(24*u.h).to_string()
-        else:
-            continue
-    return table
-
 def set_seq(table: str, 
             config: dict, 
             stack: bool = False):
@@ -485,12 +420,13 @@ def set_seq(table: str,
     @params:
         - table: the target table
         - config: the configuration dictionary
-        - stack: if True, the first target is indexed with 1 (the last target is indexed with -1, if necessary)
+        - stack: if True, the first target is indexed with 1 
+        (the last target is indexed with -1, if necessary)
     @returns:
         - table: the updated table
     """
-    window_east = coord.Angle(config["WINDOW_EAST"]).degree
-    window_west = coord.Angle(config["WINDOW_WEST"]).degree
+    window_east = coord.Angle(config["WINDOW_EAST"], unit=u.hourangle).degree
+    window_west = coord.Angle(config["WINDOW_WEST"], unit=u.hourangle).degree
     dupl_seq = np.argwhere(
             np.unique(table["seq"], return_counts=True)[1] > 1).flatten()
     index_dupl = np.argwhere(np.any(
@@ -508,23 +444,13 @@ def set_seq(table: str,
     order_table = table[index]
     table["seq"][index] = np.full(len(index), 0)
     order_table.add_columns(
-            [coord.Angle(order_table["ra"]).degree], 
-            names=["RA_DEG"])
-    if window_east <= window_west:
-        order_table.sort("RA_DEG")
-    else :
-        w1 = np.argwhere(
-                order_table["RA_DEG"] > (window_east + window_west)/2)
-        w2 = np.argwhere(
-                order_table["RA_DEG"] <= (window_east + window_west)/2)
-        order = np.zeros(len(order_table))
-        order[w1] = 1
-        order[w2] = 2
-        order_table.add_columns(
-                [order],
-                names=["ORDER"])
-        order_table.sort("RA_DEG")
-        order_table.sort("ORDER")
+            [coord.Angle(order_table["ra"], unit=u.hourangle).degree], 
+            names=["ra_deg"])
+    w_before = np.argwhere(order_table["ra_deg"] < window_east)
+
+    order_table["ra_deg"][w_before] += 360
+    order_table.sort("ra_deg")
+
     i = 0
     seq = 0
     while i < len(order_table):
@@ -654,28 +580,33 @@ def read_table(filename: str,
                           format=format_)
         for i in range(len(data)):
             line = data[i]
+            if "seq" in line.columns: seq = int(line["seq"])
+            else: seq=0
             if "name" in line.columns: name = line["name"]
             else: name = "{}_{}".format(filename, i)
             if "main_id" in line.columns: main_id = line["main_id"]
             else: main_id = name
             if "ra" in line.columns: 
-                if "h" not in str(line["ra"]):
-                    ra = coord.Angle("{}d".format(line["ra"])).to_string(unit=u.hour)
+                if ":" not in str(line["ra"]) \
+                        and str(line["ra"]).upper() not in ["", " ", "NONE"]:
+                    ra = coord.Angle("{}d".format(line["ra"])).to_string(
+                            unit=u.hourangle,
+                            sep=":",
+                            pad=True
+                        )
                 else: ra = line["ra"]
             else: ra = ""
             if "dec" in line.columns: 
-                if "d" not in str(line["dec"]):
-                    dec = coord.Angle("{}d".format(line["dec"])).to_string(unit=u.degree)
+                if ":" not in str(line["dec"]) \
+                        and str(line["dec"]).upper() not in ["", " ", "NONE"]:
+                    dec = coord.Angle("{}d".format(line["dec"])).to_string(
+                            unit=u.degree,
+                            sep=":",
+                            pad=True,
+                            alwayssign=True
+                        )
                 else: dec = line["dec"]
             else: dec = ""
-            if "n_exp" in line.columns: n_exp = line["n_exp"]
-            else: n_exp = 0
-            if "t_exp" in line.columns: t_exp = line["t_exp"]
-            else: t_exp = 0.
-            if "st_begin" in line.columns: st_begin = line["st_begin"]
-            else: st_begin = ""
-            if "st_end" in line.columns: st_end = line["st_end"]
-            else: st_end = ""
             if "notes" in line.columns: notes = line["notes"]
             else: notes = ""
             while name in table["name"]:
@@ -685,15 +616,11 @@ def read_table(filename: str,
                 if col not in COLS:
                     notes += " & {}: {}".format(col, line[col])
 
-            table.add_row({"seq": 0,
+            table.add_row({"seq": seq,
                            "name": name,
                            "main_id": main_id,
                            "ra": ra,
                            "dec": dec,
-                           "n_exp": n_exp,
-                           "t_exp": t_exp,
-                           "st_begin": st_begin,
-                           "st_end": st_end,
                            "notes": notes})
 
     except Exception as e:
@@ -701,8 +628,136 @@ def read_table(filename: str,
               + ("Error! File cannot be loaded "
                  "from the {} directory").format(directory)
               + "\033[0m")
+        print(e)
         return create_table()
     return table
+
+def make_plot(table: Table, 
+              config: dict) -> int:
+    """
+    Make an observation plot of the targets
+    @params:
+        - table: the target table
+        - config: the configuration dictionary
+    @returns: 
+        - 0
+    """
+    def get_timestamp(datetime, ref):
+        return (datetime - ref)/np.timedelta64(1, 's')
+    def get_time(timestamp, ref):
+        return timestamp*np.timedelta64(1, 's') + ref
+
+    if "YII_light_1" in plt.style.available: plt.style.use("YII_light_1")
+    plt.rcParams["figure.dpi"] = FIGURE_DPI
+    plt.rcParams["figure.facecolor"] = "#121212"
+    plt.rcParams['axes.facecolor'] = '#216576'
+    COLOR = 'DDDDDD'
+    plt.rcParams['text.color'] = COLOR
+    plt.rcParams['axes.labelcolor'] = COLOR
+    plt.rcParams['xtick.color'] = COLOR
+    plt.rcParams['ytick.color'] = COLOR
+
+    fig, ax = plt.subplots(1)
+    ax.set_title("Location: {}".format(config["LOCATION"]))
+
+    sun_set = np.datetime64(config["SUN_SET"])
+    sun_civil = np.datetime64(config["SUN_SET_CIVIL"])
+    sun_nautical = np.datetime64(config["SUN_SET_NAUTICAL"])
+    sun_astronomical = np.datetime64(config["SUN_SET_ASTRONOMICAL"])
+    sun_rastronomical = np.datetime64(config["SUN_RISE_ASTRONOMICAL"])
+    sun_rnautical = np.datetime64(config["SUN_RISE_NAUTICAL"])
+    sun_rcivil = np.datetime64(config["SUN_RISE_CIVIL"])
+    sun_rise = np.datetime64(config["SUN_RISE"])
+    
+    obs_begin = np.datetime64(config["OBS_BEGIN"])
+    obs_end = np.datetime64(config["OBS_END"])
+
+    timestamp_set = get_timestamp(sun_set, obs_begin)
+    timestamp_civil = get_timestamp(sun_civil, obs_begin)
+    timestamp_nautical = get_timestamp(sun_nautical, obs_begin)
+    timestamp_astronomical = get_timestamp(sun_astronomical, obs_begin)
+    timestamp_rastronomical = get_timestamp(sun_rastronomical, obs_begin)
+    timestamp_rnautical = get_timestamp(sun_rnautical, obs_begin)
+    timestamp_rcivil = get_timestamp(sun_rcivil, obs_begin)
+    timestamp_rise = get_timestamp(sun_rise, obs_begin)
+
+    timestamp_begin = get_timestamp(obs_begin, obs_begin)
+    timestamp_end = get_timestamp(obs_end, obs_begin)
+
+    st_begin = coord.Angle(config["ST_BEGIN"], unit=u.hourangle).degree
+    st_end = coord.Angle(config["ST_END"], unit=u.hourangle).degree
+    window_east = coord.Angle(config["WINDOW_EAST"], unit=u.hourangle).degree
+    window_west = coord.Angle(config["WINDOW_WEST"], unit=u.hourangle).degree
+
+    if st_end < st_begin: 
+        st_end += 360
+
+    slope = (timestamp_end - timestamp_begin)/(st_end - st_begin)
+    
+    def compute_timestamp(st, a=slope, sb=st_begin, hb=timestamp_begin):
+        return (st-sb) * a + hb
+    def compute_st(timestamp, a=slope, sb=st_begin, hb=timestamp_begin):
+        return (timestamp-hb) / a + sb
+
+    N = len(table)
+
+    # Night times
+    ax.axvspan(sun_set, sun_rise, color="k", alpha=0.2)
+    ax.axvspan(sun_civil, sun_rcivil, color="k", alpha=0.4)
+    ax.axvspan(sun_nautical, sun_rnautical, color="k", alpha=0.6)
+    ax.axvspan(sun_astronomical, sun_rastronomical, color="k", alpha=0.8)
+
+    # Observation time
+    ax.axvspan(obs_begin, obs_end, color="C0", alpha=0.3)
+
+    # Observation range
+    if st_begin < window_east:
+        st_begin += 360
+    if window_west < st_end:
+        window_west += 360
+    a_before = st_begin - window_east
+    a_after =  window_west - st_end
+    
+    plot_colors = ["#ED1C24", "#E8BD0F"]
+    N_colors = len(plot_colors)
+    N_same = 4
+
+    # Targets
+    for i in range(N):
+        ra = coord.Angle(table["ra"][i], unit=u.hourangle).degree
+        if ra > window_west:
+            ra -= 360
+        ra_before = ra + a_before
+        ra_after = ra - a_after
+
+        h = compute_timestamp(ra)
+        h_before = compute_timestamp(ra_before)
+        h_after = compute_timestamp(ra_after)
+
+        time_ra = get_time(h, obs_begin)
+        time_before = get_time(h_before, obs_begin)
+        time_after = get_time(h_after, obs_begin)
+        
+        color_index = (i // N_same) % N_colors
+        color = plot_colors[color_index]
+        
+        ax.plot([time_before, time_after], [i,i], color=color, marker="|")
+        ax.scatter([time_ra], [i], s=5, color=color)
+
+        ax.text(time_after, i, table["name"][i] + "  ", 
+                horizontalalignment="right", verticalalignment="center")
+        ra_text = table["ra"][i]
+        dec_text = table["dec"][i]
+        ax.text(time_before, i, "  {}{}".format(ra_text, dec_text))
+
+    ax.set_xlabel("Observation date and time (UTC)")
+    ax.set_yticks(range(N), table["seq"])
+
+    plt.show(block=False)
+
+    # obs_time = np.arange(sun_set, sun_rise, dtype="datetime64[m]")
+    return 0
+
 def print_help():
     hilfe = ("\033[36m"
              "Help will be always given to those who ask for it [1].\n"
@@ -712,7 +767,7 @@ def print_help():
              "(WARNING: this does not save the current state!)\n"
              "\t- write, save: write the current table in a file "
              "(no options available yet)\n"
-             "\t- read [filename], open [filename]: "
+             "\t- read [filename], open [filename], load [filename]: "
              "loads the file \"filename\" "
              "in the current table (no additional options available yet)\n"
              "\t- calibration, calib: adds a calibration in the target list\n"
@@ -720,16 +775,18 @@ def print_help():
              "add an object from simbad\n"
              "\t- search [ra] [dec] [radius], region [ra] [dec] [radius]: "
              "search a region centred on the ra/dec coordinates, "
-             "with a given radius (coordinates should be expressed as "
-             "12h30m30s, 90d30m30s or 90.555d)\n"
-             "\t- manual [name] [seq (optional)], "
-             "add [name] [seq (optional)]: "
+             "with a given radius (ra is given in hour, dec in degree "
+             "and the radius in any specified unit, "
+             "e.g. search 01:03:40 +35:40:20 30\')\n"
+             "\t- manual [name] -s [seq (optional)], "
+             "add [name] -s [seq (optional)]: "
              "manually add a target (only the name the sequence are "
              "available for now)\n"
-             "\t- sidereal, st: computes the sidereal time for each target\n"
              "\t- sequence, seq: computes the sequence order for each "
              "target\n"
              "\t- check: check if all targets are in the observation field\n"
+             "\t- plot, graph: creates a graph with all the targets "
+             "observation date and time"
              "\n"
              "General actions: \n"
              "\t- cancel, back: cancels the current action\n"
@@ -742,9 +799,10 @@ def print_help():
              "\033[0m")
     print(hilfe)
     return None
+
 def resolve_input(text: str, 
                   table: Table, 
-                  config: dict):
+                  config: dict) -> Table:
     """
     Resolve the input to execute the expected function in an 
     interactive way
@@ -772,7 +830,9 @@ def resolve_input(text: str,
             select_obj(table, swap_table, config)
         elif args[0].upper() in REGION:
             name = " ".join(args[1]+" "+args[2])
-            region = coord.SkyCoord(ra=args[1], dec=args[2])
+            ra = coord.Angle(args[1], unit=u.hourangle)
+            dec = coord.Angle(args[2], unit=u.degree)
+            region = coord.SkyCoord(ra=ra, dec=dec)
             radius = coord.Angle(args[3])
             obj = Simbad.query_region(region, radius)
             swap_table = add_simbad(swap_table, obj, config)
@@ -791,12 +851,12 @@ def resolve_input(text: str,
             add_manual(table, config, seq, name)
         elif args[0].upper() in CALIB: # TODO ajouter args
             add_calib(table, config)
-        elif args[0].upper() in ST:
-            set_st_window(table, config)
         elif args[0].upper() in SEQ: # FIXME marche bien une fois mais pas deux ??
             set_seq(table, config)
         elif args[0].upper() in CHECK:
             check_window(table, config) 
+        elif args[0].upper() in PLOT:
+            make_plot(table, config)
         elif args[0].upper() in HELP:
             print_help()
         elif args[0].upper() in QUIT:
