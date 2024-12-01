@@ -23,7 +23,7 @@ Then install the required packages with:
 source activate.sh && pip install -r requirements.txt && deactivate
 ```
 
-You may also require to authorize the execution of Astrobs Tools with:
+You may also need to authorize the execution of Astrobs Tools with:
 ```
 chmod u+x Astrobs-Tools.sh 
 ```
