@@ -3,6 +3,7 @@
 Astronomical Observation Tools (Astrobs Tools) is composed of:
 - SCOPE: a code to get the sky coordinate limits from observation constraints;
 - EQUATOR: a software to organize targets before observations;
+
 and the following extractors:
 - HPMS: High Proper Motion Stars (Simbad Extractor);
 - NGC: New General Catalogue (VizieR Extractor);
