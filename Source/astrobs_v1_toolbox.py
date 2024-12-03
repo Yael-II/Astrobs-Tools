@@ -347,7 +347,7 @@ def add_simbad(table: Table,
             ra = coord.Angle(obj["ra"][i], unit=u.degree)
             dec = coord.Angle(obj["dec"][i], unit=u.degree)
         except KeyError:
-            ra = coord.Angle(obj["RA"][i], unit=u.degree)
+            ra = coord.Angle(obj["RA"][i], unit=u.hourangle)
             dec = coord.Angle(obj["DEC"][i], unit=u.degree)
         ra_str = ra.to_string(unit=u.hourangle, 
                               sep=":", 
@@ -727,6 +727,8 @@ def make_plot(table: Table,
         ra = coord.Angle(table["ra"][i], unit=u.hourangle).degree
         if ra > window_west:
             ra -= 360
+        if ra < window_east:
+            ra += 360
         ra_before = ra + a_before
         ra_after = ra - a_after
 
@@ -748,12 +750,13 @@ def make_plot(table: Table,
                 horizontalalignment="right", verticalalignment="center")
         ra_text = table["ra"][i]
         dec_text = table["dec"][i]
-        ax.text(time_before, i, "  {}{}".format(ra_text, dec_text))
+        ax.text(time_before, i, "  {}{}".format(ra_text, dec_text),
+                horizontalalignment="left", verticalalignment="center")
 
     ax.set_xlabel("Observation date and time (UTC)")
     ax.set_yticks(range(N), table["seq"])
 
-    plt.show(block=False)
+    plt.show(block=True)
 
     # obs_time = np.arange(sun_set, sun_rise, dtype="datetime64[m]")
     return 0
