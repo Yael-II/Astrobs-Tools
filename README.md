@@ -1,5 +1,7 @@
 # Astronomical Observation Tools
 
+**Moved to https://codeberg.org/Yael-II/Astrobs-Tools/**
+
 Astronomical Observation Tools (Astrobs Tools) is composed of:
 - SCOPE: a code to get the sky coordinate limits from observation constraints;
 - EQUATOR: a software to organize targets before observations;
